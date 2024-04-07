@@ -3,7 +3,7 @@
 
 A PyTorch implementation of the sigmoid pairwise loss for contrastive self-supervised learning on images. The training architecture consists of an online and a target encoder (EMA) with a simple critic MLP projector and is based on [Representation Learning via Invariant Causal Mechanisms (ReLIC)](https://arxiv.org/abs/2010.07922). The loss function is a sigmoid constrastive loss adapted from [SigLIP](https://arxiv.org/abs/2303.15343), with an addition of a confidence penalty gamma that balances the ratio of positive and negative samples per batch, amplifying learning from harder examples and improving training stability. Loss function also supports a KL divergence regularization term that acts as an invariance penalty and forces the representations to stay invariant under data augmentations and amplifies intra-class distances.
 
-When using larger batch sizes (eg. larger than 128), it is possible and recommended to enable gamma scheduling, which acts as a form of curricullum learning and starts the training with a more balanced ratio of positive and negative samples and enables faster convergence and better overall results. The result of training for 100 epochs on STL-10 can be seen in the table below, where gamma is specified as `1.0 + schedule`. During that run, gamma is initialized at 1.0 and decayed to 0.0 over 20_000 steps using the cosine schedule.
+When using larger batch sizes (eg. larger than 128), it is possible and recommended to enable gamma scheduling, which acts as a form of curriculum learning, balancing the learning from positive and negative samples during early stages, enabling faster convergence and better overall results. Initially, we are learning more from positive samples, but as training progresses the signal from negative samples becomes more prevalent. The result of training for 100 epochs on STL-10 can be seen in the table below, where gamma is specified as `1.0 + schedule`. During that run, gamma is initialized at 1.0 and decayed to 0.0 over 20_000 steps using the cosine schedule.
 
 
 Repo includes the multi-crop augmentation and extends the loss function is extended to support an arbitrary number of small (local) and large (global) views. Using this technique generally results in more robust and higher quality representations.
@@ -51,13 +51,13 @@ Once the code is setup, run the following command with optinos listed below:
 `scl_train [args...]⬇️`
 
 ```
-Sigmoid Constrastive Learning
+Sigmoid Contrastive Learning
 
 options:
   -h, --help            show this help message and exit
   --dataset_path DATASET_PATH
                         Path where datasets will be saved
-  --dataset_name {stl10,cifar10}
+  --dataset_name {stl10,cifar10,tiny_imagenet,food101,imagenet1k}
                         Dataset name
   -m {resnet18,resnet50,efficientnet}, --encoder_model_name {resnet18,resnet50,efficientnet}
                         model architecture: resnet18, resnet50 or efficientnet (default: resnet18)
@@ -69,19 +69,29 @@ options:
                         Batch size
   -lr LEARNING_RATE, --learning_rate LEARNING_RATE
   -wd WEIGHT_DECAY, --weight_decay WEIGHT_DECAY
-  --fp16_precision      Whether to use 16-bit precision GPU training.
+  --fp16_precision      Whether to use 16-bit precision for GPU training
   --proj_out_dim PROJ_OUT_DIM
                         Projector MLP out dimension
   --proj_hidden_dim PROJ_HIDDEN_DIM
                         Projector MLP hidden dimension
   --log_every_n_steps LOG_EVERY_N_STEPS
                         Log every n steps
-  --beta BETA         Initial EMA coefficient
+  --beta BETA           Initial EMA coefficient
   --alpha ALPHA         Regularization loss factor
   --update_beta_after_step UPDATE_BETA_AFTER_STEP
                         Update EMA beta after this step
   --update_beta_every_n_steps UPDATE_BETA_EVERY_N_STEPS
                         Update EMA beta after this many steps
+  --gamma GAMMA         Initial confidence penalty
+  --gamma_scaling_steps GAMMA_SCALING_STEPS
+                        Number of first N steps during which gamma will be scaled from the inital value to 0
+  --use_gamma_scaling   Whether to use gamma(conf penalty) cosine scaling
+  --ckpt_path CKPT_PATH
+                        Specify path to scl_model.pth to resume training
+  --num_global_views NUM_GLOBAL_VIEWS
+                        Number of global (large) views to generate through augmentation
+  --num_local_views NUM_LOCAL_VIEWS
+                        Number of local (small) views to generate through augmentation
 ```
 
 # Citation
