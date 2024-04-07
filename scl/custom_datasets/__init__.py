@@ -1,0 +1,1 @@
+from scl.custom_datasets.custom_datasets import tiny_imagenet, food101, imagenet1k
