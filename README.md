@@ -1,15 +1,10 @@
 
-# Sigmoid Contrastive Learning
+# Sigmoid Contrastive Learning on Images
 
-A PyTorch implementation of the sigmoid pairwise loss for contrastive self-supervised learning on images. The training architecture consists of an online and a target encoder (EMA) with a simple critic MLP projector and is based on [Representation Learning via Invariant Causal Mechanisms (ReLIC)](https://arxiv.org/abs/2010.07922). The loss function is a sigmoid constrastive loss adapted from [SigLIP](https://arxiv.org/abs/2303.15343), with an addition of a confidence penalty gamma that balances the ratio of positive and negative samples per batch, amplifying learning from harder examples and improving training stability. Loss function also supports a KL divergence regularization term that acts as an invariance penalty and forces the representations to stay invariant under data augmentations and amplifies intra-class distances.
-
-When using larger batch sizes (eg. larger than 128), it is possible and recommended to enable gamma scheduling, which acts as a form of curriculum learning, balancing the learning from positive and negative samples during early stages, enabling faster convergence and better overall results. Initially, we are learning more from positive samples, but as training progresses the signal from negative samples becomes more prevalent. The result of training for 100 epochs on STL-10 can be seen in the table below, where gamma is specified as `1.0 + schedule`. During that run, gamma is initialized at 1.0 and decayed to 0.0 over 20_000 steps using the cosine schedule.
+A PyTorch implementation of the sigmoid pairwise loss for contrastive self-supervised learning on images.
 
 
-Repo includes the multi-crop augmentation and extends the loss function is extended to support an arbitrary number of small (local) and large (global) views. Using this technique generally results in more robust and higher quality representations.
-
-
-# Results
+## Results
 
 Models are pretrained on training subsets - for `CIFAR10` 50,000 and for `STL10` 100,000 images. For evaluation, I trained and tested LogisticRegression on frozen features from:
 1. `CIFAR10` - 50,000 train images
@@ -17,15 +12,26 @@ Models are pretrained on training subsets - for `CIFAR10` 50,000 and for `STL10`
 
 Linear probing was used for evaluating on features extracted from encoders using the scikit LogisticRegression model.
 
-More detailed evaluation steps and results for [CIFAR10](https://github.com/filipbasara0/relic/blob/main/notebooks/linear-probing-cifar.ipynb) and [STL10](https://github.com/filipbasara0/relic/blob/main/notebooks/linear-probing-stl.ipynb) can be found in the notebooks directory. 
+More detailed evaluation steps and results for [STL10](https://github.com/filipbasara0/relic/blob/main/notebooks/linear-probing-stl.ipynb) can be found in the notebooks directory. 
 
-| Evaulation model    | Dataset | Architecture| Encoder   | Feature dim | Proj. head dim | Epochs | Gamma         | Top1 % |
-|---------------------|---------|-------------|-----------|-------------|----------------|--------|---------------|--------|
-| LogisticRegression  | STL10   | ReLIC       | ResNet-50 | 2048        | 64             | 100    | 1.0           | 85.42  |
-| LogisticRegression  | STL10   | ReLIC       | ResNet-50 | 2048        | 64             | 100    | 1.0 + schedule| 86.06  |
+| Evaulation model    | Dataset       | Architecture| Encoder   | Feature dim | Proj. head dim | Epochs | Gamma         | Top1 % |
+|---------------------|---------------|-------------|-----------|-------------|----------------|--------|---------------|--------|
+| LogisticRegression  | STL10         | ReLIC       | ResNet-50 | 2048        | 64             | 100    | 1.0           | 85.42  |
+| LogisticRegression  | STL10         | ReLIC       | ResNet-50 | 2048        | 64             | 100    | 1.0 + schedule| 86.06  |
+| LogisticRegression  | ImageNet-1k   | ReLIC       | ResNet-50 | 2048        | 64             | 50     | 1.0           | 59.42  |
+
+[Here](https://drive.google.com/file/d/1XaZBdvPGPh2nQzzHAJ_oL41c1f8Lc_FN/view?usp=sharing) is a link to a resnet50 encoder trained on the ImageNet-1k subset on a single GPU, for only 50 epochs and a batch size of 128. It achieved 59.42% Top 1 accuracy, 83.8% Top-5 accuracy and 89.6% Top-10 accuracy.
+
+## About the project
+
+The training architecture consists of an online and a target encoder (EMA) with a simple critic MLP projector and is based on [Representation Learning via Invariant Causal Mechanisms (ReLIC)](https://arxiv.org/abs/2010.07922). The loss function is a sigmoid constrastive loss adapted from [SigLIP](https://arxiv.org/abs/2303.15343), with an addition of a confidence penalty gamma that balances the ratio of positive and negative samples per batch, amplifying learning from harder examples and improving training stability. Loss function also supports a KL divergence regularization term that acts as an invariance penalty and forces the representations to stay invariant under data augmentations and amplifies intra-class distances.
+
+When using larger batch sizes (eg. larger than 128), it is possible and recommended to enable gamma scheduling, which acts as a form of curriculum learning, balancing the learning from positive and negative samples during early stages, enabling faster convergence and better overall results. Initially, we are learning more from positive samples, but as training progresses the signal from negative samples becomes more prevalent. The result of training for 100 epochs on STL-10 can be seen in the table below, where gamma is specified as `1.0 + schedule`. During that run, gamma is initialized at 1.0 and decayed to 0.0 over 20_000 steps using the cosine schedule.
 
 
-# Usage
+Repo includes the multi-crop augmentation and extends the loss function is extended to support an arbitrary number of small (local) and large (global) views. Using this technique generally results in more robust and higher quality representations.
+
+## Usage
 
 ### Instalation
 
@@ -40,11 +46,11 @@ All training is done from scratch.
 ### Examples
 `CIFAR10` ResNet-18 model was trained with this command:
 
-`scl_train --dataset_name "cifar10" --encoder_model_name resnet18 --fp16_precision --beta 0.99 --alpha 1.0`
+`python run_training.py --dataset_name "cifar10" --encoder_model_name resnet18 --fp16_precision --beta 0.99 --alpha 1.0`
 
 `STL10` ResNet-50 model was trained with this command:
 
-`scl_train --dataset_name "stl10" --encoder_model_name resnet50 --fp16_precision  --beta 0.99 --gamma 1.0 --gamma_scaling_steps 20_000 --use_gamma_scaling`
+`python run_training.py --dataset_name "stl10" --encoder_model_name resnet50 --fp16_precision  --beta 0.99 --gamma 1.0 --gamma_scaling_steps 20_000 --use_gamma_scaling`
 
 ### Detailed options
 Once the code is setup, run the following command with optinos listed below:
@@ -94,9 +100,18 @@ options:
                         Number of local (small) views to generate through augmentation
 ```
 
-# Citation
+## Citation
 
 ```
+@misc{basara2024sigmoid,
+  author = {Basara, Filip},
+  title = {Sigmoid Contrastive Learing for Vision},
+  year = {2024},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/filipbasara0/sigmoid-contrastive-learning}}
+}
+
 @misc{mitrovic2020representation,
       title={Representation Learning via Invariant Causal Mechanisms}, 
       author={Jovana Mitrovic and Brian McWilliams and Jacob Walker and Lars Buesing and Charles Blundell},
