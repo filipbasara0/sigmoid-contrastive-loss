@@ -14,13 +14,13 @@ Linear probing was used for evaluating on features extracted from encoders using
 
 More detailed evaluation steps and results for [STL10](https://github.com/filipbasara0/relic/blob/main/notebooks/linear-probing-stl.ipynb) can be found in the notebooks directory. 
 
-| Evaulation model    | Dataset       | Architecture| Encoder   | Feature dim | Proj. head dim | Epochs | Gamma         | Top1 % |
-|---------------------|---------------|-------------|-----------|-------------|----------------|--------|---------------|--------|
-| LogisticRegression  | STL10         | ReLIC       | ResNet-50 | 2048        | 64             | 100    | 1.0           | 85.42  |
-| LogisticRegression  | STL10         | ReLIC       | ResNet-50 | 2048        | 64             | 100    | 1.0 + schedule| 86.06  |
-| LogisticRegression  | ImageNet-1k   | ReLIC       | ResNet-50 | 2048        | 64             | 50     | 1.0           | 59.42  |
+| Dataset       | Architecture| Encoder   | Feature dim | Proj. head dim | Batch size | Epochs | Gamma         | Top1 % |
+|---------------|-------------|-----------|-------------|----------------|------------|--------|---------------|--------|
+| STL10         | ReLIC       | ResNet-50 | 2048        | 64             | 256        | 100    | 1.0           | 85.42  |
+| STL10         | ReLIC       | ResNet-50 | 2048        | 64             | 256        | 100    | 1.0 + schedule| 86.06  |
+| ImageNet-1k   | ReLIC       | ResNet-50 | 2048        | 64             | 128        | 50     | 1.0           | 59.42  |
 
-[Here](https://drive.google.com/file/d/1XaZBdvPGPh2nQzzHAJ_oL41c1f8Lc_FN/view?usp=sharing) is a link to a resnet50 encoder trained on the ImageNet-1k subset on a single GPU, for only 50 epochs and a batch size of 128. It achieved 59.42% Top 1 accuracy, 83.8% Top-5 accuracy and 89.6% Top-10 accuracy.
+[Here](https://drive.google.com/file/d/1XaZBdvPGPh2nQzzHAJ_oL41c1f8Lc_FN/view?usp=sharing) is a link to a resnet50 encoder trained on the ImageNet-1k subset on a single GPU, for only 50 epochs and a batch size of 128. It achieved 59.42% Top 1 accuracy, 83.8% Top-5 accuracy and 89.6% Top-10 accuracy after training linear regresssion on frozen feautures from the training dataset.
 
 ## About the project
 
