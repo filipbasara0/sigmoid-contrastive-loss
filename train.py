@@ -82,6 +82,7 @@ def train_scl(args):
                               num_workers=multiprocessing.cpu_count() - 8,
                               drop_last=True,
                               pin_memory=True,
+                              persistent_workers=True,
                               shuffle=True)
 
     scaler = GradScaler(enabled=args.fp16_precision)
@@ -94,13 +95,16 @@ def train_scl(args):
     total_loss = 0.0
     init_conf_penalty, conf_pen_total_steps = args.gamma, args.gamma_scaling_steps
     n_global, n_local = args.num_global_views, args.num_local_views
+    if args.mini_batch_size > 0 and args.batch_size // args.mini_batch_size > 0:
+        mini_batch_size = args.mini_batch_size
+    else:
+        mini_batch_size = args.batch_size
     for epoch in range(args.num_epochs):
         epoch_loss = 0.0
         epoch_kl_loss = 0.0
         progress_bar = tqdm(train_loader,
                             desc=f"Epoch {epoch+1}/{args.num_epochs}")
         for step, (views, labels) in enumerate(progress_bar):
-            views = [v.to(device) for v in views]
             global_views = views[:n_global]
             local_views = views[n_global:n_global + n_local]
 
@@ -108,36 +112,51 @@ def train_scl(args):
                 conf_penalty = cosine_scaling_gamma(global_step, init_conf_penalty, 0.0, conf_pen_total_steps)
             else:
                 conf_penalty = init_conf_penalty
-            with autocast(enabled=args.fp16_precision):
-                projections_online = []
-                projections_target = []
-                for view in global_views:
-                    projections_online.append(scl_model.get_online_pred(view))
-                    projections_target.append(scl_model.get_target_pred(view))
-                for view in local_views:
-                    projections_online.append(scl_model.get_online_pred(view))
-                loss = 0
-                # invariance_loss var used only for logging
-                invariance_loss = 0
-                scale = 0
-                for i_t, target_pred in enumerate(projections_target):
-                    for i_o, online_pred in enumerate(projections_online):
-                        if i_t != i_o:
-                            scl_loss_, invar_loss = scl_loss(online_pred, target_pred,
-                                                             scl_model.tau, scl_model.b, 
-                                                             args.alpha, max_tau=max_tau,
-                                                             gamma=conf_penalty)
-                            loss += scl_loss_
-                            invariance_loss += invar_loss
-                            scale += 1
 
-                loss /= scale
-                invariance_loss /= scale
+            num_mini_batches = args.batch_size // mini_batch_size
+            loss = 0
+            invariance_loss = 0
+            for mini_batch_idx in range(num_mini_batches):
+                start_idx = mini_batch_idx * mini_batch_size
+                end_idx = start_idx + mini_batch_size
+                mini_batch_global_views = [v[start_idx:end_idx].to(device) for v in global_views]
+                mini_batch_local_views = [v[start_idx:end_idx].to(device) for v in local_views]
 
-            optimizer.zero_grad()
-            scaler.scale(loss).backward()
+                with autocast(enabled=args.fp16_precision):
+                    projections_online = []
+                    projections_target = []
+                    for view in mini_batch_global_views:
+                        projections_online.append(scl_model.get_online_pred(view))
+                        projections_target.append(scl_model.get_target_pred(view))
+                    for view in mini_batch_local_views:
+                        projections_online.append(scl_model.get_online_pred(view))
+                    mini_batch_loss = 0
+                    # invariance_loss var used only for logging
+                    mini_batch_invariance_loss = 0
+                    scale = 0
+                    for i_t, target_pred in enumerate(projections_target):
+                        for i_o, online_pred in enumerate(projections_online):
+                            if i_t != i_o:
+                                scl_loss_, invar_loss = scl_loss(online_pred, target_pred,
+                                                                scl_model.tau, scl_model.b, 
+                                                                args.alpha, max_tau=max_tau,
+                                                                gamma=conf_penalty)
+                                mini_batch_loss += scl_loss_
+                                mini_batch_invariance_loss += invar_loss
+                                scale += 1
+
+                    mini_batch_loss /= scale
+                    mini_batch_loss = mini_batch_loss / num_mini_batches
+                    mini_batch_invariance_loss /= scale
+                    mini_batch_invariance_loss = mini_batch_invariance_loss / num_mini_batches
+                    loss += mini_batch_loss
+                    invariance_loss += mini_batch_invariance_loss
+
+                    scaler.scale(mini_batch_loss).backward()
+
             scaler.step(optimizer)
             scaler.update()
+            optimizer.zero_grad()
 
             if global_step > args.update_beta_after_step and global_step % args.update_beta_every_n_steps == 0:
                 scl_model.update_params(beta)

@@ -31,6 +31,14 @@ parser.add_argument('-b',
                     default=256,
                     type=int,
                     help='Batch size')
+parser.add_argument('-mb',
+                    '--mini_batch_size',
+                    default=-1,
+                    type=int,
+                    help='Optionally split batch views into mini batches. ' \
+                    'Similarily to gradient accumulation, enables (significantly) larger batch sizes.' \
+                    'Could be further utilized for parallel or distributed mini batch processing, which '\
+                    'would require multiple GPUs (may add at some point).')
 parser.add_argument('-lr', '--learning_rate', default=3e-4, type=float)
 parser.add_argument('-wd', '--weight_decay', default=1e-5, type=float)
 parser.add_argument('--fp16_precision',

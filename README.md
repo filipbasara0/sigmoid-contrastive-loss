@@ -73,6 +73,9 @@ options:
                         Number of epochs for training
   -b BATCH_SIZE, --batch_size BATCH_SIZE
                         Batch size
+  -mb MINI_BATCH_SIZE, --mini_batch_size MINI_BATCH_SIZE
+                        Optionally split batch views into mini batches. Similarily to gradient accumulation, enables (significantly) larger batch sizes.Could be further utilized for parallel or distributed mini batch processing, which would require multiple GPUs (may add at
+                        some point).
   -lr LEARNING_RATE, --learning_rate LEARNING_RATE
   -wd WEIGHT_DECAY, --weight_decay WEIGHT_DECAY
   --fp16_precision      Whether to use 16-bit precision for GPU training
