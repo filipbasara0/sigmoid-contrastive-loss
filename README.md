@@ -1,7 +1,7 @@
 
-# Sigmoid Contrastive Learning on Images
+# [Sigmoid Contrastive Learning on Images](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link)
 
-A PyTorch implementation of the sigmoid pairwise loss for contrastive self-supervised learning on images.
+A PyTorch implementation of the [modulated sigmoid pairwise loss](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link) for contrastive self-supervised learning on images.
 
 
 ## Results
