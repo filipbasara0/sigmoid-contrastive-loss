@@ -1,7 +1,7 @@
 
-# [Sigmoid Contrastive Learning on Images](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link)
+# [Sigmoid Contrastive Learning for Vision](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link)
 
-A PyTorch implementation of the [modulated sigmoid pairwise loss](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link) for contrastive self-supervised learning on images.
+A PyTorch implementation of the modulated sigmoid pairwise loss for contrastive self-supervised learning on images. For more information, experiments, findings and an in-depth analysis please refer to the [extended abstract](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link).
 
 
 ## Results
@@ -46,11 +46,11 @@ All training is done from scratch.
 ### Examples
 `CIFAR10` ResNet-18 model was trained with this command:
 
-`python run_training.py --dataset_name "cifar10" --encoder_model_name resnet18 --fp16_precision --beta 0.99 --alpha 1.0`
+`scl_train --dataset_name "cifar10" --encoder_model_name resnet18 --fp16_precision --beta 0.99 --alpha 1.0`
 
 `STL10` ResNet-50 model was trained with this command:
 
-`python run_training.py --dataset_name "stl10" --encoder_model_name resnet50 --fp16_precision  --beta 0.99 --gamma 1.0 --gamma_scaling_steps 20_000 --use_gamma_scaling`
+`scl_train --dataset_name "stl10" --encoder_model_name resnet50 --fp16_precision  --beta 0.99 --gamma 1.0 --gamma_scaling_steps 20_000 --use_gamma_scaling`
 
 ### Detailed options
 Once the code is setup, run the following command with optinos listed below:
