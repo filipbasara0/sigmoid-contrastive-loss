@@ -1,5 +1,5 @@
 
-# [Sigmoid Contrastive Learning for Vision](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link)
+# [Sigmoid Contrastive Loss for Vision](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link)
 
 A PyTorch implementation of the modulated sigmoid pairwise loss for contrastive self-supervised learning on images. For more information, experiments, findings and an in-depth analysis please refer to the [extended abstract](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link).
 
