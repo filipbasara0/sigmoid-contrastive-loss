@@ -49,10 +49,10 @@ class STL10Eval:
 
         self.train_loader = DataLoader(train_ds,
                                 batch_size=64,
-                                num_workers=4)
+                                num_workers=0)
         self.val_loader = DataLoader(val_ds,
                             batch_size=64,
-                            num_workers=4)
+                            num_workers=0)
 
     @torch.inference_mode
     def evaluate(self, scl_model):

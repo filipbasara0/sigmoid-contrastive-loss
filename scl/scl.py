@@ -21,8 +21,9 @@ class MLPHead(torch.nn.Module):
     def forward(self, x):
         return self.block(x)
 
-
-def scl_loss(x, x_prime, tau, b, alpha=0.0, max_tau=5.0, gamma=0.0):
+def scl_loss(x, x_prime, tau, b, alpha=0.0, max_tau=5.0,
+             gamma=0.0, global_step=-1.0, penalty_filtering=False,
+             filtering_warmup_steps=5000, filtering_threshold=0.05):
     """
     Parameters:
     x (torch.Tensor): Online projections [n, dim].
@@ -30,17 +31,32 @@ def scl_loss(x, x_prime, tau, b, alpha=0.0, max_tau=5.0, gamma=0.0):
     tau (torch.Tensor): Learnable temperature parameter.
     b (torch.Tensor): Learnable bias parameter.
     alpha (float): KL divergence (regularization term) weight.
-    gamma (float): Confidence penalty coefficient.
+    global_step (float): Global training step.
+    penalty_filtering (boolean): If True, explicitly exclude pairs that are below a threshold.
+    filtering_warmup_steps (float): Warm up with standard confidence penalty (no explicit filtering) for this many steps.
+    filtering_threshold (float): Keep only pairs that have a confidence penalty above this threshold.
     """
     n = x.size(0)
     labels = 2 * torch.eye(n, device=x.device) - 1
     
     x, x_prime = F.normalize(x, p=2, dim=-1), F.normalize(x_prime, p=2, dim=-1)
     logits = torch.mm(x, x_prime.t()) * tau.exp().clamp(0, max_tau) + b
-
+    
     probs = torch.sigmoid(labels * logits)
     conf_penalty = (1 - probs) ** gamma
-    loss = -torch.sum(conf_penalty * F.logsigmoid(labels * logits)) / n
+    
+    if penalty_filtering and global_step > filtering_warmup_steps:
+        # Create a mask to include all positive pairs and selected negative pairs
+        positive_mask = torch.eye(n, device=x.device).bool()
+        negative_mask = (~positive_mask) & (conf_penalty > filtering_threshold)
+        selection_mask = positive_mask | negative_mask
+        # Apply the mask to logits and labels
+        selected_logits = logits[selection_mask]
+        selected_labels = labels[selection_mask]
+        # Compute the loss using only the selected pairs
+        loss = -torch.sum(F.logsigmoid(selected_labels * selected_logits)) / n
+    else:
+        loss = -torch.sum(conf_penalty * F.logsigmoid(labels * logits)) / n
 
     # KL divergence loss
     p1 = torch.nn.functional.log_softmax(logits, dim=1)

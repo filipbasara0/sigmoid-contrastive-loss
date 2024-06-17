@@ -25,7 +25,6 @@ class ViewGenerator(object):
         global_views = [self.global_transform(x) for _ in range(self.num_global_views)]
         local_views = [self.local_transform(x) for _ in range(self.num_local_views)]
         return global_views + local_views
-        # return self.inference_transform(x)
 
 
 def _grayscale_to_rgb(img):
@@ -50,8 +49,8 @@ def get_global_transforms(image_size):
         transforms.GaussianBlur(_round_up_to_odd(int(image_size * 0.1))),
         transforms.RandomSolarize(127, 0.2),
         transforms.ToTensor(),
-        # transforms.Normalize(mean=[0.485, 0.456, 0.406],
-        #                      std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
     ])
 
 
@@ -66,8 +65,8 @@ def get_local_transforms(image_size):
         transforms.Lambda(_grayscale_to_rgb),
         transforms.GaussianBlur(_round_up_to_odd(int(image_size * 0.1))),
         transforms.ToTensor(),
-        # transforms.Normalize(mean=[0.485, 0.456, 0.406],
-        #                      std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
         
     ])
 
@@ -77,6 +76,6 @@ def get_inference_transforms(image_size=(96, 96)):
         transforms.Resize(image_size),
         transforms.Lambda(_grayscale_to_rgb),
         transforms.ToTensor(),
-        # transforms.Normalize(mean=[0.485, 0.456, 0.406],
-        #                      std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
     ])
