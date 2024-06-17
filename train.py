@@ -76,13 +76,15 @@ def train_scl(args):
                                  lr=args.learning_rate,
                                  weight_decay=args.weight_decay)
 
+    n_workers = multiprocessing.cpu_count() - 8
     ds = get_dataset(args)
     train_loader = DataLoader(ds,
                               batch_size=args.batch_size,
-                              num_workers=multiprocessing.cpu_count() - 8,
+                              num_workers=n_workers,
                               drop_last=True,
                               pin_memory=True,
                               persistent_workers=True,
+                              prefetch_factor=2,
                               shuffle=True)
 
     scaler = GradScaler(enabled=args.fp16_precision)
@@ -106,7 +108,7 @@ def train_scl(args):
                             desc=f"Epoch {epoch+1}/{args.num_epochs}")
         for step, (views, labels) in enumerate(progress_bar):
             global_views = views[:n_global]
-            local_views = views[n_global:n_global + n_local]
+            local_views = views[n_global:]
 
             if args.use_gamma_scaling:
                 conf_penalty = cosine_scaling_gamma(global_step, init_conf_penalty, 0.0, conf_pen_total_steps)
@@ -139,8 +141,11 @@ def train_scl(args):
                             if i_t != i_o:
                                 scl_loss_, invar_loss = scl_loss(online_pred, target_pred,
                                                                 scl_model.tau, scl_model.b, 
-                                                                args.alpha, max_tau=max_tau,
-                                                                gamma=conf_penalty)
+                                                                alpha=args.alpha, max_tau=max_tau,
+                                                                gamma=conf_penalty, global_step=global_step,
+                                                                penalty_filtering=args.use_penalty_filtering,
+                                                                filtering_warmup_steps=args.filtering_warmup_steps,
+                                                                filtering_threshold=args.filtering_threshold)
                                 mini_batch_loss += scl_loss_
                                 mini_batch_invariance_loss += invar_loss
                                 scale += 1

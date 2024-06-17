@@ -97,6 +97,18 @@ parser.add_argument('--num_local_views',
                     type=int,
                     help='Number of local (small) views to generate through augmentation')
 
+parser.add_argument('--use_penalty_filtering',
+                    action='store_true',
+                    help='If True, explicitly exclude pairs that are below filtering_threshold')
+parser.add_argument('--filtering_threshold',
+                    default=0.05,
+                    type=float,
+                    help='Keep only pairs that have a confidence penalty above this threshold')
+parser.add_argument('--filtering_warmup_steps',
+                    default=5000,
+                    type=int,
+                    help='Warm up with standard confidence penalty (no explicit filtering) for this many steps.')
+
 
 def main():
     args = parser.parse_args()
