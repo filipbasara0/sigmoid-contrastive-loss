@@ -1,7 +1,7 @@
 
-# [Sigmoid Contrastive Loss for Vision](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link) - [poster](https://github.com/filipbasara0/sigmoid-contrastive-loss/blob/main/poster/Sigmoid_Contrastive_Loss_for_Vision_v01.pdf)
+# [Sigmoid Contrastive Loss for Vision](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link) - [(poster)](https://github.com/filipbasara0/sigmoid-contrastive-loss/blob/main/poster/Sigmoid_Contrastive_Loss_for_Vision_v01.pdf)
 
-A PyTorch implementation of the modulated sigmoid pairwise loss for contrastive self-supervised learning on images. For more information, experiments, findings and an in-depth analysis please refer to the [poster](https://github.com/filipbasara0/sigmoid-contrastive-loss/blob/main/poster/Sigmoid_Contrastive_Loss_for_Vision_v01.pdf) or the [extended abstract](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link).
+A PyTorch implementation of the modulated sigmoid pairwise loss for contrastive self-supervised learning on images. For more information, experiments, findings and an in-depth analysis please refer to the [poster](https://github.com/filipbasara0/sigmoid-contrastive-loss/blob/main/poster/Sigmoid_Contrastive_Loss_for_Vision_v01.pdf) or to the [extended abstract](https://drive.google.com/file/d/1tmcebsTHEgSsbc7ECjx5Kpq___IsUt_G/view?usp=drive_link).
 
 
 ## Results
